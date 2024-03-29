@@ -19,6 +19,9 @@ enum {
     a1, b1, c1, d1, e1, f1, g1, h1
 };
 
+enum { white, black };
+
+// Print bitboard for debugging
 void printBitboard(U64 bitboard) {
     printf("\n");
     for (int rank = 0; rank < 8; ++rank) {
@@ -32,17 +35,52 @@ void printBitboard(U64 bitboard) {
         printf("\n");
     }
     printf("\n    a b c d e f g h\n\n"); // Print files
-    printf("    Bitboard: %llud", bitboard);
+    printf("    Bitboard: %llud\n", bitboard);
+}
+
+// Not file constants
+const U64 not_a_file = 18374403900871474942ULL;
+const U64 not_h_file = 9187201950435737471ULL;
+const U64 not_ab_file = 18229723555195321596ULL;
+const U64 not_hg_file = 4557430888798830399ULL;
+
+// Pawn attacks table [side][square]
+U64 pawn_attacks[2][64];
+
+// Generate pawn attacks
+U64 maskPawnAttacks(int side, int square) {
+    // Result / Attacks bitboard
+    U64 attacks = 0ULL;
+    // Piece bitboard
+    U64 bitboard = 0ULL;
+    // Set piece on board
+    set_bit(bitboard, square);
+
+    if (!side) {
+        if ((bitboard >> 7) & not_a_file) attacks |= (bitboard >> 7);
+        if ((bitboard >> 9) & not_h_file) attacks |= (bitboard >> 9);
+    } else {
+        if ((bitboard << 7) & not_h_file) attacks |= (bitboard << 7);
+        if ((bitboard << 9) & not_a_file) attacks |= (bitboard << 9);
+    
+    }
+    return attacks;
+}
+
+// Fill pawn_attacks array
+void initLeaperAttacks() {
+    for (int square = 0; square < 64; ++square) {
+        pawn_attacks[white][square] = maskPawnAttacks(white, square);
+        pawn_attacks[black][square] = maskPawnAttacks(black, square);
+    }
 }
 
 int main() {
     printf("RUNNING: mcb-bitboard\n");
-
-    U64 bitboard = 0ULL;
-
-    set_bit(bitboard, e4);
-
-    printBitboard(bitboard);
-    
+    // Init leaper pieces attacks
+    initLeaperAttacks();
+    for (int square = 0; square < 64; ++square) {
+        printBitboard(pawn_attacks[black][square]);
+    }
     return 0;
 }
